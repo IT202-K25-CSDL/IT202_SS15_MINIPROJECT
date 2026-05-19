@@ -1,8 +1,4 @@
--- ============================================================
---  MINI SOCIAL NETWORK - Full Database Script (MySQL 8.0+)
---  Dự án: Mini Social Network (Database Centric)
---  Engine: InnoDB | Charset: utf8mb4
--- ============================================================
+
 
 DROP DATABASE IF EXISTS mini_social_network;
 CREATE DATABASE mini_social_network
@@ -11,13 +7,6 @@ CREATE DATABASE mini_social_network
 
 USE mini_social_network;
 
--- ============================================================
--- SECTION 1: TẠO CÁC BẢNG (TABLE CREATION)
--- ============================================================
-
--- ------------------------------------------------------------
--- 3.1 Bảng users (Người dùng)
--- ------------------------------------------------------------
 CREATE TABLE users (
     user_id    INT          NOT NULL AUTO_INCREMENT,
     username   VARCHAR(50)  NOT NULL,
@@ -30,24 +19,20 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- ------------------------------------------------------------
--- 3.2 Bảng posts (Bài viết)
--- ------------------------------------------------------------
 CREATE TABLE posts (
     post_id       INT  NOT NULL AUTO_INCREMENT,
     user_id       INT  NOT NULL,
     content       TEXT NOT NULL,
-    like_count    INT  NOT NULL DEFAULT 0,   -- Cập nhật tự động qua Trigger
-    comment_count INT  NOT NULL DEFAULT 0,   -- Cập nhật tự động qua Trigger
+    like_count    INT  NOT NULL DEFAULT 0,   
+    comment_count INT  NOT NULL DEFAULT 0,  
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (post_id),
     CONSTRAINT fk_posts_user FOREIGN KEY (user_id)
         REFERENCES users(user_id)
-        ON DELETE RESTRICT          -- Xóa user phải qua Transaction (F11)
+        ON DELETE RESTRICT          
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Index hỗ trợ Full-Text Search (F07)
 ALTER TABLE posts ADD FULLTEXT INDEX ft_posts_content (content);
 
 
@@ -70,17 +55,13 @@ CREATE TABLE comments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- ------------------------------------------------------------
--- 3.4 Bảng friends (Quan hệ bạn bè)
--- ------------------------------------------------------------
 CREATE TABLE friends (
     friendship_id INT         NOT NULL AUTO_INCREMENT,
-    user_id       INT         NOT NULL,     -- Người gửi lời mời
-    friend_id     INT         NOT NULL,     -- Người nhận lời mời
+    user_id       INT         NOT NULL,   
+    friend_id     INT         NOT NULL,    
     status        VARCHAR(20) NOT NULL DEFAULT 'pending',
     created_at    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (friendship_id),
-    -- Ràng buộc chặn đảo chiều A→B & B→A (Functional Unique Index, MySQL 8+)
     UNIQUE KEY uq_friendship (
         (LEAST(user_id, friend_id)),
         (GREATEST(user_id, friend_id))
@@ -105,19 +86,15 @@ CREATE TABLE likes (
     post_id    INT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (like_id),
-    -- Mỗi user chỉ like mỗi post tối đa 1 lần
     UNIQUE KEY uq_like (user_id, post_id),
     CONSTRAINT fk_likes_user FOREIGN KEY (user_id)
         REFERENCES users(user_id) ON DELETE RESTRICT,
     CONSTRAINT fk_likes_post FOREIGN KEY (post_id)
         REFERENCES posts(post_id)
-        ON DELETE CASCADE           -- Xóa post → xóa likes (3.6)
+        ON DELETE CASCADE        
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- ------------------------------------------------------------
--- Bảng post_logs (Tùy chọn – Audit log xóa bài viết, mục 4.1)
--- ------------------------------------------------------------
 CREATE TABLE post_logs (
     log_id     INT          NOT NULL AUTO_INCREMENT,
     post_id    INT          NOT NULL,
@@ -128,15 +105,9 @@ CREATE TABLE post_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- ============================================================
--- SECTION 2: TRIGGER (4.1)
--- ============================================================
 
 DELIMITER $$
 
--- ------------------------------------------------------------
--- F03 / 4.1: Trigger tăng like_count khi INSERT vào likes
--- ------------------------------------------------------------
 CREATE TRIGGER trg_likes_after_insert
 AFTER INSERT ON likes
 FOR EACH ROW
@@ -146,9 +117,6 @@ BEGIN
     WHERE  post_id = NEW.post_id;
 END$$
 
--- ------------------------------------------------------------
--- F03 / 4.1: Trigger giảm like_count khi DELETE khỏi likes
--- ------------------------------------------------------------
 CREATE TRIGGER trg_likes_after_delete
 AFTER DELETE ON likes
 FOR EACH ROW
