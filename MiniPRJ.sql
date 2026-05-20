@@ -1,7 +1,5 @@
--- ============================================================
+
 --  MINI SOCIAL NETWORK — Full Database Script (MySQL 8.0+)
---  Đúng 100% theo SRS: snake_case, NO CASCADE, SIGNAL SQLSTATE
--- ============================================================
 
 DROP DATABASE IF EXISTS mini_social_network;
 CREATE DATABASE mini_social_network
@@ -102,9 +100,7 @@ CREATE TABLE post_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- ============================================================
 -- PHẦN 2: VIEW
--- ============================================================
 
 -- Chức năng 1: view_user_info — Khung nhìn hồ sơ
 -- Chỉ lấy 4 cột an toàn, TUYỆT ĐỐI không có password
@@ -117,9 +113,7 @@ SELECT
 FROM users;
 
 
--- ============================================================
 -- PHẦN 3: TRIGGER
--- ============================================================
 
 DELIMITER $$
 
